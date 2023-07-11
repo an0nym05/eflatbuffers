@@ -5,7 +5,7 @@ defmodule Eflatbuffers.Mixfile do
     [
       app: :eflatbuffers,
       version: "0.1.0",
-      description: "Elixir/Erlang flatbuffers implementation",
+      description: description(),
       package: package(),
       elixir: ">= 1.1.1",
       build_embedded: Mix.env == :prod,
@@ -24,8 +24,14 @@ defmodule Eflatbuffers.Mixfile do
       files: ["config", "lib", "src", "test", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Florian Odronitz"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/wooga/eflatbuffers"}
+      links: %{"GitHub" => "https://github.com/odo/eflatbuffers"},
+      source_url: "https://github.com/odo/eflatbuffers"
     ]
+  end
+
+  defp description() do
+    "This is a flatbuffers implementation in Elixir.
+    In contrast to existing implementations there is no need to compile code from a schema. Instead, data and schemas are processed dynamically at runtime, offering greater flexibility."
   end
 
   # Configuration for the OTP application
