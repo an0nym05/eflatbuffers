@@ -8,8 +8,8 @@ defmodule Eflatbuffers.Mixfile do
       description: description(),
       package: package(),
       elixir: ">= 1.1.1",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: [
         plt_add_deps: :apps_direct,
@@ -52,7 +52,11 @@ defmodule Eflatbuffers.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:flatbuffer_port, git: "https://github.com/reimerei/elixir-flatbuffers", branch: "master", only: :test, override: true},
+      {:flatbuffer_port,
+       git: "https://github.com/reimerei/elixir-flatbuffers",
+       branch: "master",
+       only: :test,
+       override: true},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
     ]
