@@ -67,7 +67,7 @@ defmodule TestHelpers do
 
   def reference_map(schema, data) do
     {:ok, json} = reference_json(schema, data)
-    Poison.decode!(json, [keys: :atoms])
+    Poison.decode!(json, keys: :atoms)
   end
 
   def port_response(port) do
