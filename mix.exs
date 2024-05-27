@@ -14,7 +14,8 @@ defmodule Eflatbuffers.Mixfile do
       dialyzer: [
         plt_add_deps: :apps_direct,
         plt_file: {:no_warn, "priv/plts/project.plt"}
-      ]
+      ],
+      compilers: [:leex, :yecc] ++ Mix.compilers()
     ]
   end
 
@@ -38,7 +39,7 @@ defmodule Eflatbuffers.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger], extra_applications: [:crypto]]
+    [extra_applications: [:logger], extra_applications: [:crypto]]
   end
 
   # Dependencies can be Hex packages:
@@ -57,6 +58,7 @@ defmodule Eflatbuffers.Mixfile do
        branch: "master",
        only: :test,
        override: true},
+      {:poison, "~> 5.0.0", only: :test, override: true},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
     ]
