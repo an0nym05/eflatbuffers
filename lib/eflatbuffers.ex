@@ -1,9 +1,9 @@
 defmodule Eflatbuffers do
-  def parse_schema(schema_str, parse_opts \\ %{}) do
+  def parse_schema(schema_str, parse_opts \\ []) do
     Eflatbuffers.Schema.parse(schema_str, parse_opts)
   end
 
-  def parse_schema!(schema_str, parse_opts \\ %{}) do
+  def parse_schema!(schema_str, parse_opts \\ []) do
     case parse_schema(schema_str, parse_opts) do
       {:ok, schema} -> schema
       error -> throw(error)
