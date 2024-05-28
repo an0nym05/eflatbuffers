@@ -1,0 +1,6 @@
+include "include_child.fbs";
+
+table Parent {
+  child: Child;
+}
+root_type Parent;
