@@ -47,6 +47,8 @@ defmodule Eflatbuffers.Schema do
   def process_includes(entities, options, parse_opts, included_files \\ MapSet.new()) do
     base_path = Keyword.get(parse_opts, :base_path, ".")
 
+    IO.inspect(options)
+
     includes =
       Enum.filter(
         options,
@@ -55,6 +57,8 @@ defmodule Eflatbuffers.Schema do
           _ -> false
         end
       )
+
+    IO.inspect(includes)
 
     Enum.reduce(
       includes,

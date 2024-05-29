@@ -12,7 +12,7 @@ option -> namespace string ';' : #{get_name('$1') => get_value_atom('$2')}.
 option -> root_type string ';' : #{get_name('$1') => get_value_atom('$2')}.
 
 % options (quoted)
-option -> include quote string quote ';'         : #{get_name('$1') => get_value_bin('$3')}.
+option -> include quote string quote ';'         : #{get_name('$1') => [get_value_bin('$3')]}.
 option -> attribute quote string quote ';'       : #{get_name('$1') => get_value_bin('$3')}.
 option -> file_identifier quote string quote ';' : #{get_name('$1') => get_value_bin('$3')}.
 option -> file_extension quote string quote ';'  : #{get_name('$1') => get_value_bin('$3')}.
@@ -53,11 +53,16 @@ atom -> string : get_value_atom('$1').
 Erlang code.
 
 get_value_atom({_Token, _Line, Value}) -> list_to_atom(Value).
-get_value_bin({_Token, _Line, Value})  -> list_to_binary(Value).
-get_value({_Token, _Line, Value})      -> Value.
+get_value_bin({_Token, _Line, Value}) -> list_to_binary(Value).
+get_value({_Token, _Line, Value}) -> Value.
 
-get_name({Token, _Line, _Value})  -> Token;
-get_name({Token, _Line})          -> Token.
+get_name({Token, _Line, _Value}) -> Token;
+get_name({Token, _Line}) -> Token.
 
 add_def({Defs, Opts}, Def) -> {maps:merge(Defs, Def), Opts}.
-add_opt({Defs, Opts}, Opt) -> {Defs, maps:merge(Opts, Opt)}.
+
+add_opt({Defs, Opts}, #{include := _} = Opt) ->
+    Fun = fun(V) -> V ++ maps:get(include, Opt) end,
+    {Defs, maps:update_with(include, Fun, maps:get(include, Opt), Opts)};
+add_opt({Defs, Opts}, Opt) ->
+    {Defs, maps:merge(Opts, Opt)}.

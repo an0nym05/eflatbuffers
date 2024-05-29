@@ -1,0 +1,5 @@
+table Child2 {
+    name: string;
+}
+
+root_type Child2;
