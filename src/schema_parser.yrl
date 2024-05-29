@@ -1,5 +1,5 @@
-Nonterminals root definition option fields field key_def value attribute_def attributes atoms atom.
-Terminals  table enum union namespace root_type include attribute file_identifier file_extension float int bool string '}' '{' '(' ')' '[' ']' ';' ',' ':' '=' quote.
+Nonterminals root definition option fields field key_def value attribute_def attributes atoms atom enum_atom enum_atoms number.
+Terminals  table enum union namespace root_type include attribute file_identifier file_extension float int bool string '}' '{' '(' ')' '[' ']' ';' ',' ':' '=' quote hexint.
 Rootsymbol root.
 
 root -> definition      : {'$1', #{}}.
@@ -20,7 +20,7 @@ option -> file_extension quote string quote ';'  : #{get_name('$1') => get_value
 % definitions
 definition -> table string '{' fields '}'           : #{get_value_atom('$2') => {table, '$4'} }.
 definition -> table string '{' '}'                  : #{get_value_atom('$2') => {table, []} }.
-definition -> enum string ':' string '{' atoms '}'  : #{get_value_atom('$2') => {{enum, get_value_atom('$4')}, '$6' }}.
+definition -> enum string ':' string '{' enum_atoms '}'  : #{get_value_atom('$2') => {{enum, get_value_atom('$4')}, '$6' }}.
 definition -> union string '{' atoms '}'            : #{get_value_atom('$2') => {union, '$4'} }.
 
 % tables
@@ -43,12 +43,26 @@ value -> int      : get_value('$1').
 value -> float    : get_value('$1').
 value -> bool     : get_value('$1').
 value -> string   : get_value_bin('$1').
+value -> hexint   : get_value('$1').
 
-% enums + unions
+number -> int     : get_value('$1').
+number -> hexint  : get_value('$1').
+
+% unions
 atoms -> atom             : [ '$1' ].
 atoms -> atom ',' atoms   : [ '$1' | '$3'].
 
 atom -> string : get_value_atom('$1').
+
+% enums
+
+enum_atoms -> enum_atom     : [ '$1' ].
+enum_atoms -> enum_atom '=' number     : [ {'$1', '$3'} ].
+enum_atoms -> enum_atom ',' enum_atoms : [ '$1' | '$3' ].
+enum_atoms -> enum_atom '=' number ',' enum_atoms : [ { '$1', '$3' } | '$5' ].
+
+enum_atom -> string : get_value_atom('$1').
+
 
 Erlang code.
 

@@ -50,9 +50,14 @@ defmodule Eflatbuffers.Schema do
   # correlate tables with names
   # and define defaults explicitly
   def decorate({entities, options}) do
+    ord = %{enum: 0, union: 1, table: 2, bool: 3, string: 4}
+    sort_entities = fn {l, _}, {r, _} ->
+      Map.get(ord, l, 99) < Map.get(ord, r, 99)
+    end
     entities_decorated =
+      Enum.sort(entities, sort_entities) |>
       Enum.reduce(
-        entities,
+        # entities,
         %{},
         # for a tables we transform
         # the types to explicitly signify
@@ -69,12 +74,22 @@ defmodule Eflatbuffers.Schema do
           # into a map for faster lookup when
           # writing and reading
           {key, {{:enum, type}, fields}}, acc ->
-            hash =
+            # Enum.map(fields, fn f -> IO.puts(f) end)
+            {hash, _} =
               Enum.reduce(
-                Enum.with_index(fields),
-                %{},
-                fn {field, index}, hash_acc ->
-                  Map.put(hash_acc, field, index) |> Map.put(index, field)
+                fields,
+                {%{}, 0},
+                fn
+                  {field, default}, {hash_acc, _} ->
+                    if Map.get(hash_acc, default) != nil do
+                      raise("TODO: this key is already added!")
+                    end
+                    m = Map.put(hash_acc, field, default) |> Map.put(default, field)
+                    {m, default+1}
+
+                  field, {hash_acc, index} ->
+                    m = Map.put(hash_acc, field, index) |> Map.put(index, field)
+                    {m, index+1}
                 end
               )
 
@@ -85,8 +100,9 @@ defmodule Eflatbuffers.Schema do
               Enum.reduce(
                 Enum.with_index(fields),
                 %{},
-                fn {field, index}, hash_acc ->
-                  Map.put(hash_acc, field, index) |> Map.put(index, field)
+                fn
+                  {field, index}, hash_acc ->
+                    Map.put(hash_acc, field, index) |> Map.put(index, field)
                 end
               )
 
