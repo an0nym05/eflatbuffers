@@ -47,36 +47,34 @@ defmodule Eflatbuffers.Schema do
   def process_includes(entities, options, parse_opts, included_files \\ MapSet.new()) do
     base_path = Keyword.get(parse_opts, :base_path, ".")
 
-    IO.inspect(options)
+    includes = Map.get(options, :include)
 
-    includes =
-      Enum.filter(
-        options,
+    if includes != nil do
+      Enum.reduce(
+        includes,
+        entities,
         fn
-          {:include, _} -> true
-          _ -> false
+          included_file, acc ->
+            if MapSet.member?(included_files, included_file) do
+              acc
+            else
+              {:ok, {es, options}} =
+                File.read!(Path.join(base_path, included_file))
+                |> lexer()
+                |> :schema_parser.parse()
+
+              included_files = MapSet.put(included_files, included_file)
+
+              acc =
+                Map.merge(acc, process_includes(entities, options, parse_opts, included_files))
+
+              Map.merge(acc, es)
+            end
         end
       )
-
-    IO.inspect(includes)
-
-    Enum.reduce(
-      includes,
-      entities,
-      fn
-        {:include, included_file}, acc ->
-          if MapSet.member?(included_files, included_file) do
-            acc
-          else
-            {:ok, {es, options}} =
-              File.read!(Path.join(base_path, included_file)) |> lexer() |> :schema_parser.parse()
-
-            included_files = MapSet.put(included_files, included_file)
-            acc = Map.merge(acc, process_includes(entities, options, parse_opts, included_files))
-            Map.merge(acc, es)
-          end
-      end
-    )
+    else
+      entities
+    end
   end
 
   # this preprocesses the schema

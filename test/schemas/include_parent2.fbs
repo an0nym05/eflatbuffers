@@ -2,6 +2,7 @@ include "include_child.fbs";
 
 table Parent {
   child: Child;
+  child2: Child2;
 }
 root_type Parent;
 

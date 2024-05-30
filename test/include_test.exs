@@ -14,8 +14,39 @@ defmodule Eflatbuffers.IncludeTest do
                                            fields: [child: {:table, %{name: :Child}}],
                                            indices: %{child: {0, {:table, %{name: :Child}}}}
                                          }}
-                                    }, %{include: "include_child.fbs", root_type: :Parent}}
+                                    }, %{include: ["include_child.fbs"], root_type: :Parent}}
 
+  @expected_simple_include_2_child {%{
+                                      Child:
+                                        {:table,
+                                         %{
+                                           fields: [name: {:string, %{}}],
+                                           indices: %{name: {0, {:string, %{}}}}
+                                         }},
+                                      Parent: {
+                                        :table,
+                                        %{
+                                          fields: [
+                                            {:child, {:table, %{name: :Child}}},
+                                            {:child2, {:table, %{name: :Child2}}}
+                                          ],
+                                          indices: %{
+                                            child: {0, {:table, %{name: :Child}}},
+                                            child2: {1, {:table, %{name: :Child2}}}
+                                          }
+                                        }
+                                      },
+                                      Child2:
+                                        {:table,
+                                         %{
+                                           fields: [name: {:string, %{}}],
+                                           indices: %{name: {0, {:string, %{}}}}
+                                         }}
+                                    },
+                                    %{
+                                      include: ["include_child.fbs", "include_child2.fbs"],
+                                      root_type: :Parent
+                                    }}
   @expected_loop_stopped {%{
                             LoopB:
                               {:table,
@@ -29,7 +60,7 @@ defmodule Eflatbuffers.IncludeTest do
                                  fields: [loop_b: {:table, %{name: :LoopB}}],
                                  indices: %{loop_b: {0, {:table, %{name: :LoopB}}}}
                                }}
-                          }, %{include: "include_loop_b.fbs", root_type: :LoopA}}
+                          }, %{include: ["include_loop_b.fbs"], root_type: :LoopA}}
 
   test "simple include, 1 child" do
     schema =
@@ -44,9 +75,7 @@ defmodule Eflatbuffers.IncludeTest do
       File.read!("test/schemas/include_parent2.fbs")
       |> Eflatbuffers.Schema.parse!(base_path: "test/schemas")
 
-    IO.inspect(schema)
-
-    assert @expected_simple_include_1_child == schema
+    assert @expected_simple_include_2_child == schema
   end
 
   test "loop is stopped" do
