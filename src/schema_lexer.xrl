@@ -6,7 +6,7 @@ STRING          = [a-zA-Z0-9_\.]+
 BOOL            = (true|false)
 WS              = [\s\t]+
 NL              = [\n\r]+
-COMMENT         = //.[^\n]*\n
+COMMENT         = //(.|\n)[^\n]*\n
 BLOCK_COMMENT   = /\*[^(\*/)]*\*/
 
 Rules.

@@ -1,3 +1,7 @@
+//
+// Header with top/bottom empty comments
+//
+
 // Line 1 comment
 
 /// Doc Comment
@@ -6,10 +10,9 @@ table Person {
     /*
     Multiline Comment
     */
-    age: int;
+    age: int; // Inline comment
 }
 
 root_type Person;
 
 // EOF COMMENT MUST END WITH NEWLINE
-
