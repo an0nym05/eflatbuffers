@@ -14,8 +14,8 @@ defmodule Eflatbuffers.Schema do
     :double
   ]
 
-  def parse!(schema_str) do
-    case parse(schema_str) do
+  def parse!(schema_str, parse_opts \\ []) do
+    case parse(schema_str, parse_opts) do
       {:ok, schema} ->
         schema
 
@@ -24,12 +24,12 @@ defmodule Eflatbuffers.Schema do
     end
   end
 
-  def parse(schema_str) when is_binary(schema_str) do
+  def parse(schema_str, parse_opts \\ []) when is_binary(schema_str) do
     tokens = lexer(schema_str)
 
     case :schema_parser.parse(tokens) do
       {:ok, data} ->
-        {:ok, decorate(data)}
+        {:ok, decorate(data, parse_opts)}
 
       error ->
         error
@@ -44,12 +44,47 @@ defmodule Eflatbuffers.Schema do
     tokens
   end
 
+  def process_includes(entities, options, parse_opts, included_files \\ MapSet.new()) do
+    base_path = Keyword.get(parse_opts, :base_path, ".")
+
+    includes = Map.get(options, :include)
+
+    if includes != nil do
+      Enum.reduce(
+        includes,
+        entities,
+        fn
+          included_file, acc ->
+            if MapSet.member?(included_files, included_file) do
+              acc
+            else
+              {:ok, {es, options}} =
+                File.read!(Path.join(base_path, included_file))
+                |> lexer()
+                |> :schema_parser.parse()
+
+              included_files = MapSet.put(included_files, included_file)
+
+              acc =
+                Map.merge(acc, process_includes(entities, options, parse_opts, included_files))
+
+              Map.merge(acc, es)
+            end
+        end
+      )
+    else
+      entities
+    end
+  end
+
   # this preprocesses the schema
   # in order to keep the read/write
   # code as simple as possible
   # correlate tables with names
   # and define defaults explicitly
-  def decorate({entities, options}) do
+  def decorate({entities, options}, parse_opts \\ []) do
+    entities = process_includes(entities, options, parse_opts)
+
     entities_decorated =
       Enum.reduce(
         entities,

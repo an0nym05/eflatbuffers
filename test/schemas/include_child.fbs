@@ -1,0 +1,5 @@
+table Child {
+    name: string;
+}
+
+root_type Child;

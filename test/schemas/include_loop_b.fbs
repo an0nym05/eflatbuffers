@@ -1,0 +1,7 @@
+include "include_loop_a.fbs";
+
+table LoopB {
+    loop_a: LoopA;
+}
+
+root_type LoopB;
