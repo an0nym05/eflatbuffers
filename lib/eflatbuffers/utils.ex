@@ -14,7 +14,17 @@ defmodule Eflatbuffers.Utils do
   def scalar_size(:ushort), do: 2
   def scalar_size(:int), do: 4
   def scalar_size(:uint), do: 4
+  def scalar_size(:int8), do: 1
+  def scalar_size(:uint8), do: 1
+  def scalar_size(:int16), do: 2
+  def scalar_size(:uint16), do: 2
+  def scalar_size(:int32), do: 4
+  def scalar_size(:uint32), do: 4
+  def scalar_size(:int64), do: 8
+  def scalar_size(:uint64), do: 8
   def scalar_size(:float), do: 4
+  def scalar_size(:float32), do: 4
+  def scalar_size(:float64), do: 8
   def scalar_size(:long), do: 8
   def scalar_size(:ulong), do: 8
   def scalar_size(:double), do: 8

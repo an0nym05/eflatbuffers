@@ -17,39 +17,61 @@ defmodule Eflatbuffers.Writer do
     <<0>>
   end
 
+  def write({:int8, options}, byte, path, schema), do: write({:byte, options}, byte, path, schema)
+
   def write({:byte, _options}, byte, _, _)
       when is_integer(byte) and byte >= -128 and byte <= 127 do
     <<byte::signed-size(8)>>
   end
 
+  def write({:uint8, options}, byte, path, schema),
+    do: write({:ubyte, options}, byte, path, schema)
+
   def write({:ubyte, _options}, byte, _, _) when is_integer(byte) and byte >= 0 and byte <= 255 do
     <<byte::unsigned-size(8)>>
   end
+
+  def write({:int16, options}, byte, path, schema),
+    do: write({:short, options}, byte, path, schema)
 
   def write({:short, _options}, integer, _, _)
       when is_integer(integer) and integer <= 32_767 and integer >= -32_768 do
     <<integer::signed-little-size(16)>>
   end
 
+  def write({:uint16, options}, byte, path, schema),
+    do: write({:ushort, options}, byte, path, schema)
+
   def write({:ushort, _options}, integer, _, _)
       when is_integer(integer) and integer >= 0 and integer <= 65536 do
     <<integer::unsigned-little-size(16)>>
   end
+
+  def write({:int32, options}, byte, path, schema), do: write({:int, options}, byte, path, schema)
 
   def write({:int, _options}, integer, _, _)
       when is_integer(integer) and integer >= -2_147_483_648 and integer <= 2_147_483_647 do
     <<integer::signed-little-size(32)>>
   end
 
+  def write({:uint32, options}, byte, path, schema),
+    do: write({:uint, options}, byte, path, schema)
+
   def write({:uint, _options}, integer, _, _)
       when is_integer(integer) and integer >= 0 and integer <= 4_294_967_295 do
     <<integer::unsigned-little-size(32)>>
   end
 
+  def write({:float32, options}, byte, path, schema),
+    do: write({:float, options}, byte, path, schema)
+
   def write({:float, _options}, float, _, _)
       when (is_float(float) or is_integer(float)) and float >= -3.4e+38 and float <= +3.4e+38 do
     <<float::float-little-size(32)>>
   end
+
+  def write({:int64, options}, byte, path, schema),
+    do: write({:int64, options}, byte, path, schema)
 
   def write({:long, _options}, integer, _, _)
       when is_integer(integer) and integer >= -9_223_372_036_854_775_808 and
@@ -57,10 +79,16 @@ defmodule Eflatbuffers.Writer do
     <<integer::signed-little-size(64)>>
   end
 
+  def write({:uint64, options}, byte, path, schema),
+    do: write({:uint64, options}, byte, path, schema)
+
   def write({:ulong, _options}, integer, _, _)
       when is_integer(integer) and integer >= 0 and integer <= 18_446_744_073_709_551_615 do
     <<integer::unsigned-little-size(64)>>
   end
+
+  def write({:float64, options}, byte, path, schema),
+    do: write({:float64, options}, byte, path, schema)
 
   def write({:double, _options}, float, _, _)
       when (is_float(float) or is_integer(float)) and float >= -1.7e+308 and float <= +1.7e+308 do
