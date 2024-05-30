@@ -24,11 +24,23 @@ defmodule Eflatbuffers.Generator do
   def gen_type(_schema, :int, opts), do: random_num_signed(4) |> maybe_default(0, opts)
   def gen_type(_schema, :uint, opts), do: random_num_unsigned(4) |> maybe_default(0, opts)
 
+  def gen_type(_schema, :int8, opts), do: random_num_signed(1) |> maybe_default(0, opts)
+  def gen_type(_schema, :uint8, opts), do: random_num_unsigned(1) |> maybe_default(0, opts)
+
+  def gen_type(_schema, :int32, opts), do: random_num_signed(4) |> maybe_default(0, opts)
+  def gen_type(_schema, :uint32, opts), do: random_num_unsigned(4) |> maybe_default(0, opts)
+
+  def gen_type(_schema, :int64, opts), do: random_num_signed(8) |> maybe_default(0, opts)
+  def gen_type(_schema, :uint64, opts), do: random_num_signed(8) |> maybe_default(0, opts)
+
   def gen_type(_schema, :long, opts), do: random_num_signed(8) |> maybe_default(0, opts)
   def gen_type(_schema, :ulong, opts), do: random_num_signed(8) |> maybe_default(0, opts)
 
   def gen_type(_schema, :float, opts), do: random_float(4) |> maybe_default(0.0, opts)
   def gen_type(_schema, :double, opts), do: random_float(8) |> maybe_default(0.0, opts)
+
+  def gen_type(_schema, :float32, opts), do: random_float(4) |> maybe_default(0.0, opts)
+  def gen_type(_schema, :float64, opts), do: random_float(8) |> maybe_default(0.0, opts)
 
   def gen_type(_schema, :bool, opts), do: random_bool() |> maybe_default(false, opts)
 

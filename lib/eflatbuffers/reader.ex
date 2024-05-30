@@ -8,50 +8,80 @@ defmodule Eflatbuffers.Reader do
     end
   end
 
+  def read({:int8, options}, vtable_pointer, data, schema),
+    do: read({:byte, options}, vtable_pointer, data, schema)
+
   def read({:byte, _options}, vtable_pointer, data, _) do
     <<value::signed-size(8)>> = read_from_data_buffer(vtable_pointer, data, 8)
     value
   end
+
+  def read({:uint8, options}, vtable_pointer, data, schema),
+    do: read({:ubyte, options}, vtable_pointer, data, schema)
 
   def read({:ubyte, _options}, vtable_pointer, data, _) do
     <<value::unsigned-size(8)>> = read_from_data_buffer(vtable_pointer, data, 8)
     value
   end
 
+  def read({:int16, options}, vtable_pointer, data, schema),
+    do: read({:short, options}, vtable_pointer, data, schema)
+
   def read({:short, _options}, vtable_pointer, data, _) do
     <<value::signed-little-size(16)>> = read_from_data_buffer(vtable_pointer, data, 16)
     value
   end
+
+  def read({:uint16, options}, vtable_pointer, data, schema),
+    do: read({:ushort, options}, vtable_pointer, data, schema)
 
   def read({:ushort, _options}, vtable_pointer, data, _) do
     <<value::unsigned-little-size(16)>> = read_from_data_buffer(vtable_pointer, data, 16)
     value
   end
 
+  def read({:int32, options}, vtable_pointer, data, schema),
+    do: read({:int, options}, vtable_pointer, data, schema)
+
   def read({:int, _options}, vtable_pointer, data, _) do
     <<value::signed-little-size(32)>> = read_from_data_buffer(vtable_pointer, data, 32)
     value
   end
+
+  def read({:uint32, options}, vtable_pointer, data, schema),
+    do: read({:uint, options}, vtable_pointer, data, schema)
 
   def read({:uint, _options}, vtable_pointer, data, _) do
     <<value::unsigned-little-size(32)>> = read_from_data_buffer(vtable_pointer, data, 32)
     value
   end
 
+  def read({:float32, options}, vtable_pointer, data, schema),
+    do: read({:float, options}, vtable_pointer, data, schema)
+
   def read({:float, _options}, vtable_pointer, data, _) do
     <<value::float-little-size(32)>> = read_from_data_buffer(vtable_pointer, data, 32)
     value
   end
+
+  def read({:int64, options}, vtable_pointer, data, schema),
+    do: read({:long, options}, vtable_pointer, data, schema)
 
   def read({:long, _options}, vtable_pointer, data, _) do
     <<value::signed-little-size(64)>> = read_from_data_buffer(vtable_pointer, data, 64)
     value
   end
 
+  def read({:uint64, options}, vtable_pointer, data, schema),
+    do: read({:ulong, options}, vtable_pointer, data, schema)
+
   def read({:ulong, _options}, vtable_pointer, data, _) do
     <<value::unsigned-little-size(64)>> = read_from_data_buffer(vtable_pointer, data, 64)
     value
   end
+
+  def read({:float64, options}, vtable_pointer, data, schema),
+    do: read({:double, options}, vtable_pointer, data, schema)
 
   def read({:double, _options}, vtable_pointer, data, _) do
     <<value::float-little-size(64)>> = read_from_data_buffer(vtable_pointer, data, 64)
