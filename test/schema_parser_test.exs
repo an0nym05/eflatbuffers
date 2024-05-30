@@ -3,7 +3,7 @@ defmodule Eflatbuffers.SchemaTest do
 
   @expected_simple %{
     namespace: :"SyGame.Play",
-    include: "some_other.fbs",
+    include: ["some_other.fbs"],
     attribute: "priority",
     file_identifier: "FOOO",
     file_extension: "baa",
