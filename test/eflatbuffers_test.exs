@@ -231,4 +231,12 @@ defmodule EflatbuffersTest do
                Eflatbuffers.write!(map, Eflatbuffers.parse_schema!(load_schema(:error)))
              )
   end
+
+  test "enum full circle" do
+    map = %{
+      e: "B"
+    }
+
+    assert_full_circle(:enums, map)
+  end
 end

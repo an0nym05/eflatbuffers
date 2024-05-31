@@ -93,11 +93,18 @@ defmodule Eflatbuffers.Schema do
   # correlate tables with names
   # and define defaults explicitly
   def decorate({entities, options}, parse_opts \\ []) do
+    ord = %{enum: 0, union: 1, table: 2, bool: 3, string: 4}
+
+    sort_entities = fn {l, _}, {r, _} ->
+      Map.get(ord, l, 99) < Map.get(ord, r, 99)
+    end
+
     entities = process_includes(entities, options, parse_opts)
 
     entities_decorated =
-      Enum.reduce(
-        entities,
+      Enum.sort(entities, sort_entities)
+      |> Enum.reduce(
+        # entities,
         %{},
         # for a tables we transform
         # the types to explicitly signify
@@ -114,24 +121,51 @@ defmodule Eflatbuffers.Schema do
           # into a map for faster lookup when
           # writing and reading
           {key, {{:enum, type}, fields}}, acc ->
-            hash =
+            {hash, default, _} =
               Enum.reduce(
-                Enum.with_index(fields),
-                %{},
-                fn {field, index}, hash_acc ->
-                  Map.put(hash_acc, field, index) |> Map.put(index, field)
+                fields,
+                {%{}, nil, 0},
+                fn
+                  {field, value}, {hash_acc, last_default, _} ->
+                    last_default =
+                      case last_default do
+                        nil -> value
+                        n -> n
+                      end
+
+                    case Map.get(hash_acc, value) do
+                      nil ->
+                        m = Map.put(hash_acc, field, value) |> Map.put(value, field)
+                        {m, last_default, value + 1}
+
+                      f ->
+                        raise(
+                          "eflatbuffers: the enum #{field} with value #{value} has already been used by enum #{f}"
+                        )
+                    end
+
+                  field, {hash_acc, last_default, index} ->
+                    m = Map.put(hash_acc, field, index) |> Map.put(index, field)
+                    {m, last_default, index + 1}
                 end
               )
 
-            Map.put(acc, key, {:enum, %{type: {type, %{default: 0}}, members: hash}})
+            default =
+              case default do
+                nil -> 0
+                n -> n
+              end
+
+            Map.put(acc, key, {:enum, %{type: {type, %{default: default}}, members: hash}})
 
           {key, {:union, fields}}, acc ->
             hash =
               Enum.reduce(
                 Enum.with_index(fields),
                 %{},
-                fn {field, index}, hash_acc ->
-                  Map.put(hash_acc, field, index) |> Map.put(index, field)
+                fn
+                  {field, index}, hash_acc ->
+                    Map.put(hash_acc, field, index) |> Map.put(index, field)
                 end
               )
 
@@ -194,6 +228,12 @@ defmodule Eflatbuffers.Schema do
   end
 
   def decorate_referenced_field(field_value, entities) do
+    {field_value, default} =
+      case field_value do
+        {field_value, default} -> {field_value, default}
+        field_value -> {field_value, nil}
+      end
+
     case Map.get(entities, field_value) do
       nil ->
         throw({:error, {:entity_not_found, field_value}})
@@ -202,7 +242,11 @@ defmodule Eflatbuffers.Schema do
         {:table, %{name: field_value}}
 
       {{:enum, _}, _} ->
-        {:enum, %{name: field_value}}
+        if default != nil do
+          {:enum, %{name: field_value, default: default}}
+        else
+          {:enum, %{name: field_value}}
+        end
 
       {:union, _} ->
         {:union, %{name: field_value}}
