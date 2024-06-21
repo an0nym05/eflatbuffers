@@ -106,7 +106,7 @@ defmodule TestHelpers do
   def round_floats(other), do: other
 
   def compare_with_defaults(a, b, schema, ns \\ nil) do
-    tables = case Utils.fetch_with_ns(schema, ns) do
+    tables = case Utils.get_entities_for_ns(schema, ns) do
       {:ok, {tables, _}} -> tables
     end
 

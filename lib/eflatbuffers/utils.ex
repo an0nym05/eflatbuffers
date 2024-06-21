@@ -75,7 +75,7 @@ defmodule Eflatbuffers.Utils do
     end
   end
 
-  def fetch_with_ns({entities, opts}, ns) do
+  def get_entities_for_ns({entities, opts} = _schema, ns) do
     case Map.fetch(entities, ns) do
       :error ->
         base_ns = get_namespace(opts)
