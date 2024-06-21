@@ -27,6 +27,7 @@ file_extension{WS}  : {token, {file_extension, TokenLine}}.
 {INT}           : {Val, _} = string:to_integer(TokenChars), {token, {int, TokenLine, Val}}.
 {HEXINT}        : {token, {int, TokenLine, get_hexint(TokenChars)}}.
 {BOOL}          : {token, {int, TokenLine, get_bool(TokenChars)}}.
+% TODO: Add a PATH rule 
 {STRING}        : {token, {string, TokenLine, TokenChars}}.
 {WS}            : skip_token.
 {NL}            : skip_token.

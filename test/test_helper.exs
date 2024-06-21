@@ -1,6 +1,7 @@
 ExUnit.start()
 
 defmodule TestHelpers do
+  alias Eflatbuffers.Utils
   use ExUnit.Case
 
   def load_schema({:doge, type}) do
@@ -105,8 +106,9 @@ defmodule TestHelpers do
   def round_floats(other), do: other
 
   def compare_with_defaults(a, b, schema, ns \\ nil) do
-    {tables, _} = schema
-    tables = Map.get(tables, ns)
+    tables = case Utils.fetch_with_ns(schema, ns) do
+      {:ok, {tables, _}} -> tables
+    end
 
     default_enums =
       case Map.values(tables)

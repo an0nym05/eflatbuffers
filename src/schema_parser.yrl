@@ -12,6 +12,7 @@ option -> namespace string ';' : #{get_name('$1') => get_value_atom('$2')}.
 option -> root_type string ';' : #{get_name('$1') => get_value_atom('$2')}.
 
 % options (quoted)
+% todo: add a path production rule
 option -> include quote string quote ';'         : #{get_name('$1') => [get_value_bin('$3')]}.
 option -> attribute quote string quote ';'       : #{get_name('$1') => get_value_bin('$3')}.
 option -> file_identifier quote string quote ';' : #{get_name('$1') => get_value_bin('$3')}.

@@ -67,4 +67,25 @@ defmodule Eflatbuffers.Utils do
   def with_default_ns({entities, opts}) do
     {Map.get(entities, nil), opts}
   end
+
+  def get_namespace(opts) do
+    case opts do
+      %{namespace: ns} -> ns
+      _ -> nil
+    end
+  end
+
+  def fetch_with_ns({entities, opts}, ns) do
+    case Map.fetch(entities, ns) do
+      :error ->
+        base_ns = get_namespace(opts)
+        msg = if ns == nil do
+          "Default empty namespace was not found, maybe you meant #{base_ns}?"
+        else
+          "Namespace #{ns} was not found, or did not contain any entities. Maybe you meant #{base_ns}"
+        end
+        {:error, msg}
+      {:ok, entities} -> {:ok, {entities, opts}}
+    end
+  end
 end
