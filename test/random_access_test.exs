@@ -121,7 +121,13 @@ defmodule EflatbuffersRandomAccessTest do
                :"DogeFB.Config"
              )
 
-    assert "coins" == get(fb, [:config, :quests, :quests, 0, :rewards, 0, :id], {:doge, :config}, :"DogeFB.Config")
+    assert "coins" ==
+             get(
+               fb,
+               [:config, :quests, :quests, 0, :rewards, 0, :id],
+               {:doge, :config},
+               :"DogeFB.Config"
+             )
   end
 
   def get(fb, path, schema_type, ns \\ nil) do

@@ -15,7 +15,10 @@ defmodule EflatbuffersTest.Enums do
   }
 
   test "enums start with 1" do
-    schema = File.read!("test/schemas/enums.fbs") |> Eflatbuffers.parse_schema!() |> Eflatbuffers.Utils.with_default_ns()
+    schema =
+      File.read!("test/schemas/enums.fbs")
+      |> Eflatbuffers.parse_schema!()
+      |> Eflatbuffers.Utils.with_default_ns()
 
     assert schema == @enums_start_with_1
   end

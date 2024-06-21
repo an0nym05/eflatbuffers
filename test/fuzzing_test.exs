@@ -14,10 +14,12 @@ defmodule EflatbuffersTest.Fuzz do
     map_re = Eflatbuffers.read!(fb, load_schema(schema_type))
 
     {_, opts} = Eflatbuffers.parse_schema!(load_schema(schema_type))
-    ns = case opts do
-      %{namespace: ns} -> ns
-      _ -> nil
-    end
+
+    ns =
+      case opts do
+        %{namespace: ns} -> ns
+        _ -> nil
+      end
 
     assert [] ==
              compare_with_defaults(

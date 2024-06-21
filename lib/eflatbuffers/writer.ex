@@ -123,7 +123,7 @@ defmodule Eflatbuffers.Writer do
 
   def write({:enum, options = %{name: enum_name}}, value, path, ns, {tables, _} = schema)
       when is_binary(value) do
-        tables = Map.get(tables, ns)
+    tables = Map.get(tables, ns)
     {:enum, enum_options} = Map.get(tables, enum_name)
     members = enum_options.members
     {type, type_options} = enum_options.type

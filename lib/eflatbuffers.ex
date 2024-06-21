@@ -15,10 +15,11 @@ defmodule Eflatbuffers do
   end
 
   def write!(map, {_, %{root_type: root_type} = options} = schema) do
-    ns = case options do
-      %{namespace: ns} -> ns
-      _ -> nil
-    end
+    ns =
+      case options do
+        %{namespace: ns} -> ns
+        _ -> nil
+      end
 
     root_table =
       [<<vtable_offset::little-size(16)>> | _] =

@@ -155,7 +155,14 @@ defmodule EflatbuffersTest do
     # writing
     reply = Eflatbuffers.write!(map, schema)
     reply_map = Eflatbuffers.read!(reply, schema)
-    assert [] == compare_with_defaults(round_floats(map), round_floats(reply_map), schema, :"DogeFB.Config")
+
+    assert [] ==
+             compare_with_defaults(
+               round_floats(map),
+               round_floats(reply_map),
+               schema,
+               :"DogeFB.Config"
+             )
 
     assert_full_circle_with_ns({:doge, :config}, map, :"DogeFB.Config")
   end

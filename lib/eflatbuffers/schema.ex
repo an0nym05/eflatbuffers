@@ -66,10 +66,11 @@ defmodule Eflatbuffers.Schema do
 
     case options do
       %{include: includes} ->
-        ns = case options do
-          %{namespace: ns} -> ns
-          _ -> nil
-        end
+        ns =
+          case options do
+            %{namespace: ns} -> ns
+            _ -> nil
+          end
 
         Enum.reduce(
           includes,
@@ -85,19 +86,21 @@ defmodule Eflatbuffers.Schema do
                   |> lexer()
                   |> :schema_parser.parse()
 
-                included_ns = case options do
-                  %{namespace: included_ns} -> included_ns
-                  _ -> nil
-                end
+                included_ns =
+                  case options do
+                    %{namespace: included_ns} -> included_ns
+                    _ -> nil
+                  end
 
                 included_files = MapSet.put(included_files, included_file)
 
                 {included_es, child_ordering} =
                   process_includes(%{included_ns => es}, options, parse_opts, included_files)
 
-                acc = Map.merge(acc, included_es, fn _, lv, rv ->
-                  Map.merge(lv, rv)
-                end)
+                acc =
+                  Map.merge(acc, included_es, fn _, lv, rv ->
+                    Map.merge(lv, rv)
+                  end)
 
                 {acc, ordering ++ child_ordering ++ [ns, included_ns]}
               end
@@ -109,44 +112,6 @@ defmodule Eflatbuffers.Schema do
 
       _ ->
         {entities, [nil]}
-    end
-  end
-
-  def canonical_ns_key(ns, key) do
-    :"#{ns}.#{key}"
-  end
-
-  def put_ns(m, ns, key, v) do
-    case ns do
-      nil ->
-        Map.put(
-          m,
-          key,
-          v
-        )
-
-      ns ->
-        Map.put(
-          m,
-          canonical_ns_key(ns, key),
-          v
-        )
-    end
-  end
-
-  def get_ns(m, ns, key) do
-    case ns do
-      nil ->
-        Map.get(
-          m,
-          key
-        )
-
-      ns ->
-        Map.get(
-          m,
-          canonical_ns_key(ns, key)
-        )
     end
   end
 
@@ -202,7 +167,6 @@ defmodule Eflatbuffers.Schema do
               end
             )
 
-
           default =
             case default do
               nil -> 0
@@ -233,10 +197,12 @@ defmodule Eflatbuffers.Schema do
   # correlate tables with names
   # and define defaults explicitly
   def decorate({entities, options}, parse_opts \\ []) do
-    entities = case options do
-      %{namespace: ns} -> %{ns => entities}
-      _ -> %{nil => entities}
-    end
+    entities =
+      case options do
+        %{namespace: ns} -> %{ns => entities}
+        _ -> %{nil => entities}
+      end
+
     {entities, ordering} = process_includes(entities, options, parse_opts)
 
     entities_decorated =

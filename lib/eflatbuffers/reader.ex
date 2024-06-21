@@ -133,11 +133,13 @@ defmodule Eflatbuffers.Reader do
         ns
       )
       when is_atom(table_name) do
-        ns = case {options, ns} do
-          {%{namespace: default_ns}, _} -> default_ns
-          {_, ns} -> ns
-        end
-        {ns, table_name} = Utils.base_ns(table_name, ns)
+    ns =
+      case {options, ns} do
+        {%{namespace: default_ns}, _} -> default_ns
+        {_, ns} -> ns
+      end
+
+    {ns, table_name} = Utils.base_ns(table_name, ns)
 
     <<_::binary-size(table_pointer_pointer), table_offset::little-size(32), _::binary>> = data
     table_pointer = table_pointer_pointer + table_offset
@@ -174,7 +176,15 @@ defmodule Eflatbuffers.Reader do
 
     [
       value
-      | read_vector_elements(type, true, vector_pointer + offset, vector_count - 1, data, ns, schema)
+      | read_vector_elements(
+          type,
+          true,
+          vector_pointer + offset,
+          vector_count - 1,
+          data,
+          ns,
+          schema
+        )
     ]
   end
 
@@ -184,7 +194,15 @@ defmodule Eflatbuffers.Reader do
 
     [
       value
-      | read_vector_elements(type, false, vector_pointer + offset, vector_count - 1, data, ns, schema)
+      | read_vector_elements(
+          type,
+          false,
+          vector_pointer + offset,
+          vector_count - 1,
+          data,
+          ns,
+          schema
+        )
     ]
   end
 
@@ -220,7 +238,8 @@ defmodule Eflatbuffers.Reader do
         map
       ) do
     # for a union byte field named $fieldname$_type is prefixed
-    union_index = read({:byte, %{default: 0}}, data_buffer_pointer + data_offset, data, schema, ns)
+    union_index =
+      read({:byte, %{default: 0}}, data_buffer_pointer + data_offset, data, schema, ns)
 
     case union_index do
       0 ->
