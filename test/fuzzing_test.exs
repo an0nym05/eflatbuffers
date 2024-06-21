@@ -13,13 +13,22 @@ defmodule EflatbuffersTest.Fuzz do
     fb = Eflatbuffers.write!(map, load_schema(schema_type))
     map_re = Eflatbuffers.read!(fb, load_schema(schema_type))
 
+    {_, opts} = Eflatbuffers.parse_schema!(load_schema(schema_type))
+
+    ns =
+      case opts do
+        %{namespace: ns} -> ns
+        _ -> nil
+      end
+
     assert [] ==
              compare_with_defaults(
                round_floats(map),
                round_floats(map_re),
-               Eflatbuffers.parse_schema!(load_schema(schema_type))
+               Eflatbuffers.parse_schema!(load_schema(schema_type)),
+               ns
              )
 
-    assert_full_circle(schema_type, map)
+    assert_full_circle_with_ns(schema_type, map, ns)
   end
 end

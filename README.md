@@ -73,12 +73,15 @@ iex(6)> Eflatbuffers.get!(color_scheme_fb, [:background, :green], schema)
 * vectors
 * unions
 * enums
+  - including setting initial values
 * defaults
 * json to fb
 * fb to json
 * file identifier + validation
 * random access
 * validate file identifiers
+* namespaces
+* includes
 
 ### features only in Eflatbuffers
 
@@ -88,7 +91,6 @@ iex(6)> Eflatbuffers.get!(color_scheme_fb, [:background, :green], schema)
 
 * shared strings
 * shared vtables
-* includes
 * alignment
 * additional attributes
 * structs

@@ -55,6 +55,7 @@ defmodule EflatbuffersWriterTest do
         Eflatbuffers.Writer.write(
           {:vector, %{type: {:bool, %{default: 0}}}},
           [true, true, false],
+          nil,
           [],
           {%{}, %{}}
         )
@@ -71,6 +72,7 @@ defmodule EflatbuffersWriterTest do
         Eflatbuffers.Writer.write(
           {:vector, %{type: {:string, %{}}}},
           ["foo", "bar"],
+          nil,
           [],
           {%{}, %{}}
         )
@@ -78,7 +80,7 @@ defmodule EflatbuffersWriterTest do
   end
 
   def write(type, data) do
-    Eflatbuffers.Writer.write({type, %{}}, data, [], {%{}, %{}})
+    Eflatbuffers.Writer.write({type, %{}}, data, [], {%{}, %{}}, nil)
   end
 
   ### intermediate data
@@ -98,6 +100,7 @@ defmodule EflatbuffersWriterTest do
           {:the_bool2, {:bool, %{}}}
         ],
         [true, "max", "minimum", nil],
+        nil,
         [],
         ~c"_"
       )

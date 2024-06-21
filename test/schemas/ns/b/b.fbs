@@ -1,0 +1,10 @@
+include "../a/a.fbs";
+
+namespace ns.b;
+
+table B {
+    name: string;
+    a: ns.a.A;
+}
+
+root_type B;

@@ -3,7 +3,7 @@ Definitions.
 FLOAT           = -?[0-9]+\.[0-9]+([eE][-+]?[0-9]+)?
 INT             = -?[0-9]+
 HEXINT          = [-+]?0[xX][0-9]+
-STRING          = [a-zA-Z0-9_\.]+
+STRING          = [a-zA-Z0-9_\./]+
 BOOL            = (true|false)
 WS              = [\s\t]+
 NL              = [\n\r]+
@@ -27,6 +27,7 @@ file_extension{WS}  : {token, {file_extension, TokenLine}}.
 {INT}           : {Val, _} = string:to_integer(TokenChars), {token, {int, TokenLine, Val}}.
 {HEXINT}        : {token, {int, TokenLine, get_hexint(TokenChars)}}.
 {BOOL}          : {token, {int, TokenLine, get_bool(TokenChars)}}.
+% TODO: Add a PATH rule 
 {STRING}        : {token, {string, TokenLine, TokenChars}}.
 {WS}            : skip_token.
 {NL}            : skip_token.

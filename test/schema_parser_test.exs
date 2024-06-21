@@ -135,7 +135,8 @@ defmodule Eflatbuffers.SchemaTest do
            }}
       }
 
-    assert {decorated_entities, %{}} == Eflatbuffers.Schema.decorate({parsed_entities, %{}})
+    assert {%{nil: decorated_entities}, %{}} ==
+             Eflatbuffers.Schema.decorate({parsed_entities, %{}})
   end
 
   test "decorate enumerable" do
@@ -166,7 +167,8 @@ defmodule Eflatbuffers.SchemaTest do
            }}
       }
 
-    assert {decorated_entities, %{}} == Eflatbuffers.Schema.decorate({parsed_entities, %{}})
+    assert {%{nil: decorated_entities}, %{}} ==
+             Eflatbuffers.Schema.decorate({parsed_entities, %{}})
   end
 
   test "decorate union" do
@@ -192,7 +194,8 @@ defmodule Eflatbuffers.SchemaTest do
         union_inner: {:union, %{members: %{0 => :hello, 1 => :bye, :bye => 1, :hello => 0}}}
       }
 
-    assert {decorated_entities, %{}} == Eflatbuffers.Schema.decorate({parsed_entities, %{}})
+    assert {%{nil: decorated_entities}, %{}} ==
+             Eflatbuffers.Schema.decorate({parsed_entities, %{}})
   end
 
   test "parse doge schemas" do
