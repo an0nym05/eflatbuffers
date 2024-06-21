@@ -60,7 +60,8 @@ defmodule Eflatbuffers.Mixfile do
        override: true},
       {:poison, "~> 5.0.0", only: :test, override: true},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4.3", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7.5", only: [:dev, :test], runtime: false}
     ]
   end
 end
