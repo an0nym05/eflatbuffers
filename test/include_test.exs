@@ -66,6 +66,7 @@ defmodule Eflatbuffers.IncludeTest do
     schema =
       File.read!("test/schemas/include_parent.fbs")
       |> Eflatbuffers.Schema.parse!(base_path: "test/schemas")
+      |> Eflatbuffers.Utils.with_default_ns()
 
     assert @expected_simple_include_1_child == schema
   end
@@ -74,6 +75,7 @@ defmodule Eflatbuffers.IncludeTest do
     schema =
       File.read!("test/schemas/include_parent2.fbs")
       |> Eflatbuffers.Schema.parse!(base_path: "test/schemas")
+      |> Eflatbuffers.Utils.with_default_ns()
 
     assert @expected_simple_include_2_child == schema
   end
@@ -82,6 +84,7 @@ defmodule Eflatbuffers.IncludeTest do
     schema =
       File.read!("test/schemas/include_loop_a.fbs")
       |> Eflatbuffers.Schema.parse!(base_path: "test/schemas")
+      |> Eflatbuffers.Utils.with_default_ns()
 
     assert schema == @expected_loop_stopped
   end

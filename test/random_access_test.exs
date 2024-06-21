@@ -117,14 +117,15 @@ defmodule EflatbuffersRandomAccessTest do
              get(
                fb,
                [:config, :town_sectors, :townSectors, 2, :minLevel, 0, :id],
-               {:doge, :config}
+               {:doge, :config},
+               :"DogeFB.Config"
              )
 
-    assert "coins" == get(fb, [:config, :quests, :quests, 0, :rewards, 0, :id], {:doge, :config})
+    assert "coins" == get(fb, [:config, :quests, :quests, 0, :rewards, 0, :id], {:doge, :config}, :"DogeFB.Config")
   end
 
-  def get(fb, path, schema_type) do
-    Eflatbuffers.get!(fb, path, load_schema(schema_type))
+  def get(fb, path, schema_type, ns \\ nil) do
+    Eflatbuffers.get!(fb, path, load_schema(schema_type), ns)
   end
 
   def fb(data, schema_type) do

@@ -30,10 +30,42 @@ defmodule Eflatbuffers.Utils do
   def scalar_size(:double), do: 8
   def scalar_size(type), do: throw({:error, {:unknown_scalar, type}})
 
-  def extract_scalar_type({:enum, %{name: enum_name}}, {tables, _options}) do
-    {:enum, %{type: type}} = Map.get(tables, enum_name)
+  def extract_scalar_type({:enum, %{name: enum_name}}, {tables, _options}, ns) do
+    {:enum, %{type: type}} = Map.get(tables, ns) |> Map.get(enum_name)
     type
   end
 
-  def extract_scalar_type(type, _), do: type
+  def extract_scalar_type(type, _, _), do: type
+
+  def base_ns(s, default_ns \\ nil) do
+    s =
+      case is_atom(s) do
+        true -> Atom.to_string(s)
+        _ -> s
+      end
+
+    String.split(s, ".")
+    |> Enum.reverse()
+    |> then(fn [h | tl] ->
+      h =
+        case h do
+          # remap empty string to nil
+          "" -> nil
+          _ -> String.to_atom(h)
+        end
+
+      ns_path =
+        case tl do
+          [] -> default_ns
+          nil -> default_ns
+          _ -> Enum.reverse(tl) |> Enum.join(".") |> String.to_atom()
+        end
+
+      {ns_path, h}
+    end)
+  end
+
+  def with_default_ns({entities, opts}) do
+    {Map.get(entities, nil), opts}
+  end
 end

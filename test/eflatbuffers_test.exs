@@ -155,9 +155,9 @@ defmodule EflatbuffersTest do
     # writing
     reply = Eflatbuffers.write!(map, schema)
     reply_map = Eflatbuffers.read!(reply, schema)
-    assert [] == compare_with_defaults(round_floats(map), round_floats(reply_map), schema)
+    assert [] == compare_with_defaults(round_floats(map), round_floats(reply_map), schema, :"DogeFB.Config")
 
-    assert_full_circle({:doge, :config}, map)
+    assert_full_circle_with_ns({:doge, :config}, map, :"DogeFB.Config")
   end
 
   test "commands fb" do
@@ -169,7 +169,7 @@ defmodule EflatbuffersTest do
 
     Enum.each(
       maps,
-      fn map -> assert_full_circle({:doge, :commands}, map) end
+      fn map -> assert_full_circle_with_ns({:doge, :commands}, map, :"DogeFB.Commands") end
     )
   end
 

@@ -12,10 +12,14 @@ defmodule TestHelpers do
   end
 
   def assert_full_circle(schema_type, map) do
-    assert_full_circle(schema_type, schema_type, map)
+    assert_full_circle(schema_type, schema_type, map, nil)
   end
 
-  def assert_full_circle(schema_type_ex, schema_type_fc, map) do
+  def assert_full_circle_with_ns(schema_type, map, ns \\ nil) do
+    assert_full_circle(schema_type, schema_type, map, ns)
+  end
+
+  def assert_full_circle(schema_type_ex, schema_type_fc, map, ns \\ nil) do
     schema_ex = Eflatbuffers.Schema.parse!(load_schema(schema_type_ex))
 
     fb_flatc = reference_fb(schema_type_fc, map)
@@ -31,7 +35,7 @@ defmodule TestHelpers do
     map_flatc_ex = Eflatbuffers.read!(fb_flatc, schema_ex)
 
     diff =
-      compare_with_defaults(round_floats(map_ex_flatc), round_floats(map_flatc_ex), schema_ex)
+      compare_with_defaults(round_floats(map_ex_flatc), round_floats(map_flatc_ex), schema_ex, ns)
 
     assert [] == diff
   end
@@ -100,8 +104,9 @@ defmodule TestHelpers do
   def round_floats(float) when is_float(float), do: round(float)
   def round_floats(other), do: other
 
-  def compare_with_defaults(a, b, schema) do
+  def compare_with_defaults(a, b, schema, ns \\ nil) do
     {tables, _} = schema
+    tables = Map.get(tables, ns)
 
     default_enums =
       case Map.values(tables)

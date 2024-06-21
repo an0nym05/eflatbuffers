@@ -54,37 +54,177 @@ defmodule Eflatbuffers.Schema do
     tokens
   end
 
+  def decorate_ns(entities, _ns) do
+    Enum.reduce(entities, %{}, fn
+      {k, {t, opts}}, acc ->
+        Map.put(acc, k, {t, opts})
+    end)
+  end
+
   def process_includes(entities, options, parse_opts, included_files \\ MapSet.new()) do
     base_path = Keyword.get(parse_opts, :base_path, ".")
 
-    includes = Map.get(options, :include)
-
-    if includes != nil do
-      Enum.reduce(
-        includes,
-        entities,
-        fn
-          included_file, acc ->
-            if MapSet.member?(included_files, included_file) do
-              acc
-            else
-              {:ok, {es, options}} =
-                File.read!(Path.join(base_path, included_file))
-                |> lexer()
-                |> :schema_parser.parse()
-
-              included_files = MapSet.put(included_files, included_file)
-
-              acc =
-                Map.merge(acc, process_includes(entities, options, parse_opts, included_files))
-
-              Map.merge(acc, es)
-            end
+    case options do
+      %{include: includes} ->
+        ns = case options do
+          %{namespace: ns} -> ns
+          _ -> nil
         end
-      )
-    else
-      entities
+
+        Enum.reduce(
+          includes,
+          {entities, []},
+          fn
+            included_file, {acc, ordering} ->
+              if MapSet.member?(included_files, included_file) do
+                # Already included the file
+                {acc, ordering}
+              else
+                {:ok, {es, options}} =
+                  File.read!(Path.join(base_path, included_file))
+                  |> lexer()
+                  |> :schema_parser.parse()
+
+                included_ns = case options do
+                  %{namespace: included_ns} -> included_ns
+                  _ -> nil
+                end
+
+                included_files = MapSet.put(included_files, included_file)
+
+                {included_es, child_ordering} =
+                  process_includes(%{included_ns => es}, options, parse_opts, included_files)
+
+                acc = Map.merge(acc, included_es, fn _, lv, rv ->
+                  Map.merge(lv, rv)
+                end)
+
+                {acc, ordering ++ child_ordering ++ [ns, included_ns]}
+              end
+          end
+        )
+
+      %{namespace: ns} ->
+        {entities, [ns]}
+
+      _ ->
+        {entities, [nil]}
     end
+  end
+
+  def canonical_ns_key(ns, key) do
+    :"#{ns}.#{key}"
+  end
+
+  def put_ns(m, ns, key, v) do
+    case ns do
+      nil ->
+        Map.put(
+          m,
+          key,
+          v
+        )
+
+      ns ->
+        Map.put(
+          m,
+          canonical_ns_key(ns, key),
+          v
+        )
+    end
+  end
+
+  def get_ns(m, ns, key) do
+    case ns do
+      nil ->
+        Map.get(
+          m,
+          key
+        )
+
+      ns ->
+        Map.get(
+          m,
+          canonical_ns_key(ns, key)
+        )
+    end
+  end
+
+  def resolver(entities, ns, g) do
+    ord = %{enum: 0, union: 1, table: 2, bool: 3, string: 4}
+
+    sort_entities = fn {l, _}, {r, _} ->
+      Map.get(ord, l, 99) < Map.get(ord, r, 99)
+    end
+
+    entities
+    |> Enum.sort(sort_entities)
+    |> Enum.reduce(
+      %{},
+      # for a tables we transform
+      # the types to explicitly signify
+      # vectors, tables, and enums
+      fn
+        {key, {:table, fields}}, acc ->
+          v = {:table, table_options(fields, entities, ns, g)}
+          Map.put(acc, key, v)
+
+        # for enums we change the list of options
+        # into a map for faster lookup when
+        # writing and reading
+        {key, {{:enum, type}, fields}}, acc ->
+          {hash, default, _} =
+            Enum.reduce(
+              fields,
+              {%{}, nil, 0},
+              fn
+                {field, value}, {hash_acc, last_default, _} ->
+                  last_default =
+                    case last_default do
+                      nil -> value
+                      n -> n
+                    end
+
+                  case Map.get(hash_acc, value) do
+                    nil ->
+                      m = Map.put(hash_acc, field, value) |> Map.put(value, field)
+                      {m, last_default, value + 1}
+
+                    f ->
+                      raise(
+                        "eflatbuffers: the enum #{field} with value #{value} has already been used by enum #{f}"
+                      )
+                  end
+
+                field, {hash_acc, last_default, index} ->
+                  m = Map.put(hash_acc, field, index) |> Map.put(index, field)
+                  {m, last_default, index + 1}
+              end
+            )
+
+
+          default =
+            case default do
+              nil -> 0
+              n -> n
+            end
+
+          Map.put(acc, key, {:enum, %{type: {type, %{default: default}}, members: hash}})
+
+        {key, {:union, fields}}, acc ->
+          hash =
+            Enum.reduce(
+              Enum.with_index(fields),
+              %{},
+              fn
+                {field, index}, hash_acc ->
+                  Map.put(hash_acc, field, index) |> Map.put(index, field)
+              end
+            )
+
+          Map.put(acc, key, {:union, %{members: hash}})
+      end
+    )
   end
 
   # this preprocesses the schema
@@ -93,108 +233,50 @@ defmodule Eflatbuffers.Schema do
   # correlate tables with names
   # and define defaults explicitly
   def decorate({entities, options}, parse_opts \\ []) do
-    ord = %{enum: 0, union: 1, table: 2, bool: 3, string: 4}
-
-    sort_entities = fn {l, _}, {r, _} ->
-      Map.get(ord, l, 99) < Map.get(ord, r, 99)
+    entities = case options do
+      %{namespace: ns} -> %{ns => entities}
+      _ -> %{nil => entities}
     end
-
-    entities = process_includes(entities, options, parse_opts)
+    {entities, ordering} = process_includes(entities, options, parse_opts)
 
     entities_decorated =
-      Enum.sort(entities, sort_entities)
+      ordering
       |> Enum.reduce(
-        # entities,
         %{},
-        # for a tables we transform
-        # the types to explicitly signify
-        # vectors, tables, and enums
-        fn
-          {key, {:table, fields}}, acc ->
-            Map.put(
-              acc,
-              key,
-              {:table, table_options(fields, entities)}
-            )
-
-          # for enums we change the list of options
-          # into a map for faster lookup when
-          # writing and reading
-          {key, {{:enum, type}, fields}}, acc ->
-            {hash, default, _} =
-              Enum.reduce(
-                fields,
-                {%{}, nil, 0},
-                fn
-                  {field, value}, {hash_acc, last_default, _} ->
-                    last_default =
-                      case last_default do
-                        nil -> value
-                        n -> n
-                      end
-
-                    case Map.get(hash_acc, value) do
-                      nil ->
-                        m = Map.put(hash_acc, field, value) |> Map.put(value, field)
-                        {m, last_default, value + 1}
-
-                      f ->
-                        raise(
-                          "eflatbuffers: the enum #{field} with value #{value} has already been used by enum #{f}"
-                        )
-                    end
-
-                  field, {hash_acc, last_default, index} ->
-                    m = Map.put(hash_acc, field, index) |> Map.put(index, field)
-                    {m, last_default, index + 1}
-                end
-              )
-
-            default =
-              case default do
-                nil -> 0
-                n -> n
-              end
-
-            Map.put(acc, key, {:enum, %{type: {type, %{default: default}}, members: hash}})
-
-          {key, {:union, fields}}, acc ->
-            hash =
-              Enum.reduce(
-                Enum.with_index(fields),
-                %{},
-                fn
-                  {field, index}, hash_acc ->
-                    Map.put(hash_acc, field, index) |> Map.put(index, field)
-                end
-              )
-
-            Map.put(acc, key, {:union, %{members: hash}})
+        fn ns, g ->
+          if Map.has_key?(g, ns) do
+            g
+          else
+            es = Map.get(entities, ns)
+            Map.put(g, ns, resolver(es, ns, g))
+          end
         end
       )
 
     {entities_decorated, options}
   end
 
-  def table_options(fields, entities) do
-    fields_and_indices(fields, entities, {0, [], %{}})
+  def table_options(fields, entities, ns, g) do
+    fields_and_indices(fields, entities, ns, g, {0, [], %{}})
   end
 
-  def fields_and_indices([], _, {_, fields, indices}) do
+  def fields_and_indices([], _, _, _, {_, fields, indices}) do
     %{fields: Enum.reverse(fields), indices: indices}
   end
 
   def fields_and_indices(
         [{field_name, field_value} | fields],
         entities,
+        ns,
+        g,
         {index, fields_acc, indices_acc}
       ) do
     index_offset = index_offset(field_value, entities)
-    decorated_type = decorate_field(field_value, entities)
+    decorated_type = decorate_field(field_value, entities, ns, g)
     index_new = index + index_offset
     fields_acc_new = [{field_name, decorated_type} | fields_acc]
     indices_acc_new = Map.put(indices_acc, field_name, {index, decorated_type})
-    fields_and_indices(fields, entities, {index_new, fields_acc_new, indices_acc_new})
+    fields_and_indices(fields, entities, ns, g, {index_new, fields_acc_new, indices_acc_new})
   end
 
   def index_offset(field_value, entities) do
@@ -213,28 +295,50 @@ defmodule Eflatbuffers.Schema do
     end
   end
 
-  def decorate_field({:vector, type}, entities) do
-    {:vector, %{type: decorate_field(type, entities)}}
+  def decorate_field({:vector, type}, entities, ns, g) do
+    {:vector, %{type: decorate_field(type, entities, ns, g)}}
   end
 
-  def decorate_field(field_value, entities) do
+  def decorate_field(field_value, entities, ns, g) do
     case is_referenced?(field_value) do
       true ->
-        decorate_referenced_field(field_value, entities)
+        decorate_referenced_field(field_value, entities, ns, g)
 
       false ->
         decorate_field(field_value)
     end
   end
 
-  def decorate_referenced_field(field_value, entities) do
+  def base_ns(s) do
+    String.split(to_string(s), ".")
+    |> Enum.reverse()
+    |> then(fn [h | tl] ->
+      {Enum.reverse(tl) |> Enum.join(".") |> String.to_atom(), String.to_atom(h)}
+    end)
+  end
+
+  def retrieve_ns_entity(field_value, entities, ns, g) do
+    case {ns, base_ns(field_value)} do
+      {nil, _} ->
+        Map.get(entities, field_value)
+
+      {_, {:"", field_value}} ->
+        Map.get(entities, field_value)
+
+      {_, {value_ns, field_value}} ->
+        ns = Map.get(g, value_ns)
+        Map.get(ns, field_value)
+    end
+  end
+
+  def decorate_referenced_field(field_value, entities, ns, g) do
     {field_value, default} =
       case field_value do
         {field_value, default} -> {field_value, default}
         field_value -> {field_value, nil}
       end
 
-    case Map.get(entities, field_value) do
+    case retrieve_ns_entity(field_value, entities, ns, g) do
       nil ->
         throw({:error, {:entity_not_found, field_value}})
 

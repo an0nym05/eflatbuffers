@@ -1,0 +1,22 @@
+namespace ns.a;
+
+table X {
+    x: int;
+}
+
+table Y {
+    y: float;
+}
+
+table Z {
+    z: byte;
+}
+
+union U { X, Y, Z }
+
+table A {
+    age: int;
+    u: U;
+}
+
+root_type A;

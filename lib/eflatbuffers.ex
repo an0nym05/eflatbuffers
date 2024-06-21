@@ -15,9 +15,14 @@ defmodule Eflatbuffers do
   end
 
   def write!(map, {_, %{root_type: root_type} = options} = schema) do
+    ns = case options do
+      %{namespace: ns} -> ns
+      _ -> nil
+    end
+
     root_table =
       [<<vtable_offset::little-size(16)>> | _] =
-      Eflatbuffers.Writer.write({:table, %{name: root_type}}, map, [], schema)
+      Eflatbuffers.Writer.write({:table, %{name: root_type}}, map, [], ns, schema)
 
     file_identifier =
       case Map.get(options, :file_identifier) do
@@ -56,7 +61,7 @@ defmodule Eflatbuffers do
 
   def read!(data, {_, schema_options = %{root_type: root_type}} = schema) do
     match_identifiers(data, schema_options)
-    Eflatbuffers.Reader.read({:table, %{name: root_type}}, 0, data, schema)
+    Eflatbuffers.Reader.read({:table, %{name: root_type}}, 0, data, schema, nil)
   end
 
   def match_identifiers(
@@ -97,9 +102,9 @@ defmodule Eflatbuffers do
     end
   end
 
-  def get(data, path, schema) do
+  def get(data, path, schema, ns) do
     try do
-      {:ok, get!(data, path, schema)}
+      {:ok, get!(data, path, schema, ns)}
     rescue
       error -> {:error, error}
     catch
@@ -107,11 +112,11 @@ defmodule Eflatbuffers do
     end
   end
 
-  def get!(data, path, schema) when is_binary(schema) do
-    get!(data, path, parse_schema!(schema))
+  def get!(data, path, schema, ns) when is_binary(schema) do
+    get!(data, path, parse_schema!(schema), ns)
   end
 
-  def get!(data, path, {_tables, %{root_type: root_type}} = schema) do
-    Eflatbuffers.RandomAccess.get(path, {:table, %{name: root_type}}, 0, data, schema)
+  def get!(data, path, {_tables, %{root_type: root_type}} = schema, ns) do
+    Eflatbuffers.RandomAccess.get(path, {:table, %{name: root_type}}, 0, data, schema, ns)
   end
 end
