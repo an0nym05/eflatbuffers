@@ -57,7 +57,6 @@ defmodule Eflatbuffers.Utils do
       ns_path =
         case tl do
           [] -> default_ns
-          nil -> default_ns
           _ -> Enum.reverse(tl) |> Enum.join(".") |> String.to_atom()
         end
 
